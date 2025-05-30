@@ -1,28 +1,30 @@
 loadstring([[
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-
-local plr = Players.LocalPlayer
-local sheckles = plr:WaitForChild("Sheckles", 10)
-local AddShecklesEvent = ReplicatedStorage:WaitForChild("AddSheckles", 10)
-
--- Criar GUI
-local gui = Instance.new("ScreenGui")
+local plr = game.Players.LocalPlayer
+local sheckles = plr:WaitForChild("Sheckles")
+local gui = Instance.new("ScreenGui", game.CoreGui)
 gui.Name = "Tr1X_MacabraUI"
-gui.Parent = game.CoreGui
 
--- Sons macabros
-local soundClick = Instance.new("Sound", gui)
-soundClick.SoundId = "rbxassetid://4590657391"
-soundClick.Volume = 0.8
+local uis = game:GetService("UserInputService")
+local runService = game:GetService("RunService")
 
--- Estilo sujo macabro
+-- Som de clique
+local sound = Instance.new("Sound", gui)
+sound.SoundId = "rbxassetid://4590657391"
+sound.Volume = 1
+
+-- Função para animação "carregando"
+local function showLoading(button)
+	button.Text = "Carregando..."
+	wait(0.8)
+	button.Text = button._originalText or button.Text
+	sound:Play()
+end
+
+-- Função para criar label estilizado (preto e branco)
 local function makeLabel(text, parent)
 	local l = Instance.new("TextLabel", parent)
-	l.BackgroundColor3 = Color3.fromRGB(30, 0, 30)
-	l.TextColor3 = Color3.fromRGB(255, 0, 255)
+	l.BackgroundColor3 = Color3.new(0, 0, 0)
+	l.TextColor3 = Color3.new(1, 1, 1)
 	l.Font = Enum.Font.Arcade
 	l.TextScaled = true
 	l.Size = UDim2.new(1, 0, 0, 30)
@@ -31,279 +33,337 @@ local function makeLabel(text, parent)
 	return l
 end
 
-local function makeButton(text, parent)
-	local b = Instance.new("TextButton", parent)
-	b.Size = UDim2.new(1, -20, 0, 40)
-	b.Position = UDim2.new(0, 10, 0, 0)
-	b.BackgroundColor3 = Color3.fromRGB(60, 0, 60)
-	b.TextColor3 = Color3.new(1, 0, 1)
-	b.Font = Enum.Font.SourceSansBold
-	b.TextScaled = true
-	b.Text = text
-	return b
-end
-
--- Janela principal
+-- Criando a frame principal
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 450, 0, 350)
-frame.Position = UDim2.new(0.5, -225, 0.5, -175)
-frame.BackgroundColor3 = Color3.fromRGB(15, 0, 15)
-frame.BorderSizePixel = 0
+frame.Size = UDim2.new(0, 400, 0, 300)
+frame.Position = UDim2.new(0.5, -200, 0.5, -150)
+frame.BackgroundColor3 = Color3.new(0, 0, 0)
+frame.BorderColor3 = Color3.new(1, 1, 1)
+frame.BorderSizePixel = 2
 
+-- Barra de título (para arrastar)
 local title = makeLabel("💀 Tr1X MENU MACABRO 💀", frame)
 title.Size = UDim2.new(1, 0, 0, 40)
+title.BackgroundColor3 = Color3.new(0, 0, 0)
+title.BorderSizePixel = 0
+title.TextColor3 = Color3.new(1, 1, 1)
 
--- Minimizar botão
+-- Botão minimizar
 local miniBtn = Instance.new("TextButton", title)
 miniBtn.Size = UDim2.new(0, 30, 1, 0)
 miniBtn.Position = UDim2.new(1, -30, 0, 0)
 miniBtn.Text = "-"
-miniBtn.TextColor3 = Color3.new(1, 0, 1)
-miniBtn.BackgroundColor3 = Color3.fromRGB(50, 0, 50)
+miniBtn.TextColor3 = Color3.new(1, 1, 1)
+miniBtn.BackgroundColor3 = Color3.new(0, 0, 0)
 miniBtn.Font = Enum.Font.SourceSansBold
 miniBtn.TextScaled = true
+miniBtn.BorderSizePixel = 1
+miniBtn.BorderColor3 = Color3.new(1,1,1)
 
--- Tabs
+-- Container abas (tabs)
 local tabs = Instance.new("Frame", frame)
-tabs.Size = UDim2.new(0, 110, 1, -40)
+tabs.Size = UDim2.new(0, 100, 1, -40)
 tabs.Position = UDim2.new(0, 0, 0, 40)
-tabs.BackgroundColor3 = Color3.fromRGB(40, 0, 40)
+tabs.BackgroundColor3 = Color3.new(0, 0, 0)
+tabs.BorderSizePixel = 1
+tabs.BorderColor3 = Color3.new(1, 1, 1)
 
+-- Container conteúdo das abas
 local content = Instance.new("Frame", frame)
-content.Size = UDim2.new(1, -110, 1, -40)
-content.Position = UDim2.new(0, 110, 0, 40)
-content.BackgroundColor3 = Color3.fromRGB(20, 0, 20)
+content.Size = UDim2.new(1, -100, 1, -40)
+content.Position = UDim2.new(0, 100, 0, 40)
+content.BackgroundColor3 = Color3.new(0, 0, 0)
+content.BorderSizePixel = 1
+content.BorderColor3 = Color3.new(1, 1, 1)
 
+-- Tabela para guardar painéis e botões
 local panels = {}
+local buttons = {}
+
+-- Função criar aba e botão
 local function createTab(name)
 	local btn = Instance.new("TextButton", tabs)
-	btn.Size = UDim2.new(1, 0, 0, 40)
+	btn.Size = UDim2.new(1, 0, 0, 30)
 	btn.Text = name
-	btn.TextColor3 = Color3.new(1, 0, 1)
+	btn.TextColor3 = Color3.new(1, 1, 1)
 	btn.Font = Enum.Font.SourceSansBold
-	btn.BackgroundColor3 = Color3.fromRGB(50, 0, 50)
+	btn.BackgroundColor3 = Color3.new(0, 0, 0)
+	btn.BorderSizePixel = 1
+	btn.BorderColor3 = Color3.new(1, 1, 1)
 	btn.TextScaled = true
-
+	
+	buttons[name] = btn
+	
 	local panel = Instance.new("Frame", content)
 	panel.Name = name
 	panel.Size = UDim2.new(1, 0, 1, 0)
 	panel.BackgroundTransparency = 1
 	panel.Visible = false
 	panels[name] = panel
-
+	
 	btn.MouseButton1Click:Connect(function()
+		showLoading(btn)
 		for _, v in pairs(panels) do v.Visible = false end
 		panel.Visible = true
-		soundClick:Play()
 	end)
 end
 
+-- Criar abas
 createTab("Home")
 createTab("Risk")
-createTab("Outfit")
 createTab("Fun")
 
--- Minimizar ação
-miniBtn.MouseButton1Click:Connect(function()
-	content.Visible = not content.Visible
-	soundClick:Play()
+-- Conteúdo Home
+local h = panels["Home"]
+local label = makeLabel("Seja bem-vindo ao inferno digital", h)
+label.Size = UDim2.new(1, 0, 0, 50)
+
+local insult = makeLabel("Seu liso fudido, vai farmar", h)
+insult.Position = UDim2.new(0, 0, 0, 60)
+insult.Size = UDim2.new(1, 0, 0, 50)
+
+-- Conteúdo Risk (farming sheckles)
+local r = panels["Risk"]
+local lazyBtn = Instance.new("TextButton", r)
+lazyBtn.Size = UDim2.new(1, -20, 0, 50)
+lazyBtn.Position = UDim2.new(0, 10, 0, 10)
+lazyBtn.Text = "Sou Preguiçoso (Ativar)"
+lazyBtn.TextColor3 = Color3.new(1, 1, 1)
+lazyBtn.Font = Enum.Font.SourceSansBold
+lazyBtn.TextScaled = true
+lazyBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+lazyBtn.BorderSizePixel = 1
+lazyBtn.BorderColor3 = Color3.new(1, 1, 1)
+lazyBtn._originalText = lazyBtn.Text
+
+local loopActive = false
+local loop
+
+lazyBtn.MouseButton1Click:Connect(function()
+	loopActive = not loopActive
+	showLoading(lazyBtn)
+	if loopActive then
+		lazyBtn.Text = "Sou Preguiçoso (Desativar)"
+		game.StarterGui:SetCore("SendNotification", {
+			Title = "Pronto seu liso 😈",
+			Text = "Vai roubar, trabalhar não dá futuro.",
+			Duration = 4
+		})
+		loop = runService.RenderStepped:Connect(function(dt)
+			if tick() % 2 < 0.03 then
+				if sheckles and sheckles.Value then
+					-- Para alterar o valor do servidor, deve-se usar RemoteEvent, aqui só altera local. 
+					-- Então abaixo só simula a interface local.
+					sheckles.Value = sheckles.Value + 5000000
+				end
+			end
+		end)
+	else
+		lazyBtn.Text = "Sou Preguiçoso (Ativar)"
+		if loop then loop:Disconnect() end
+	end
 end)
 
--- Conteúdo Home
-do
-	local h = panels["Home"]
-	local label1 = makeLabel("Seja bem-vindo ao inferno digital", h)
-	label1.Size = UDim2.new(1, 0, 0, 50)
-	local label2 = makeLabel("Seu liso fudido, vai farmar", h)
-	label2.Position = UDim2.new(0, 0, 0, 60)
-	label2.Size = UDim2.new(1, 0, 0, 50)
-end
-
--- Função para notificação
-local function notify(title, text)
-	game.StarterGui:SetCore("SendNotification", {
-		Title = title,
-		Text = text,
-		Duration = 4
-	})
-end
-
--- Conteúdo Risk (farm sheckles)
-do
-	local r = panels["Risk"]
-	local lazyBtn = makeButton("Sou Preguiçoso (Ativar)", r)
-	lazyBtn.Position = UDim2.new(0, 10, 0, 10)
-
-	local loopActive = false
-	local lastTick = 0
-
-	lazyBtn.MouseButton1Click:Connect(function()
-		loopActive = not loopActive
-		soundClick:Play()
-		if loopActive then
-			lazyBtn.Text = "Sou Preguiçoso (Desativar)"
-			notify("Pronto seu liso 😈", "Vai roubar, trabalhar não dá futuro.")
-		else
-			lazyBtn.Text = "Sou Preguiçoso (Ativar)"
-		end
-	end)
-
-	RunService.RenderStepped:Connect(function()
-		if loopActive then
-			if tick() - lastTick > 2 then
-				if AddShecklesEvent and sheckles then
-					AddShecklesEvent:FireServer(5000000)
-				end
-				lastTick = tick()
-			end
-		end
-	end)
-end
-
--- Conteúdo Outfit (ESP)
-do
-	local o = panels["Outfit"]
-
-	local espBtn = makeButton("Ativar ESP", o)
-	espBtn.Position = UDim2.new(0, 10, 0, 10)
-
-	local espActive = false
-	local espBoxes = {}
-
-	local function createBox(player)
-		local box = Instance.new("BoxHandleAdornment")
-		box.Adornee = nil
-		box.AlwaysOnTop = true
-		box.ZIndex = 10
-		box.Size = Vector3.new(4, 6, 4)
-		box.Color3 = Color3.fromRGB(255, 0, 255)
-		box.Transparency = 0.5
-		box.Parent = game.CoreGui
-		return box
-	end
-
-	espBtn.MouseButton1Click:Connect(function()
-		espActive = not espActive
-		soundClick:Play()
-		if espActive then
-			espBtn.Text = "Desativar ESP"
-		else
-			espBtn.Text = "Ativar ESP"
-			-- Remove todos
-			for _, box in pairs(espBoxes) do
-				if box then box:Destroy() end
-			end
-			espBoxes = {}
-		end
-	end)
-
-	RunService.RenderStepped:Connect(function()
-		if espActive then
-			for _, player in pairs(Players:GetPlayers()) do
-				if player ~= plr and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-					if not espBoxes[player] then
-						espBoxes[player] = createBox(player)
-					end
-					espBoxes[player].Adornee = player.Character.HumanoidRootPart
-				end
-			end
-		end
-	end)
-end
-
--- Conteúdo Fun (Duplicar item na mão)
-do
-	local f = panels["Fun"]
-
-	local dupBtn = makeButton("Duplicar Item na Mão", f)
-	dupBtn.Position = UDim2.new(0, 10, 0, 10)
-
-	local function duplicateItem()
-		local char = plr.Character
-		if not char then notify("Erro", "Personagem não carregado") return end
-
-		local tool = char:FindFirstChildOfClass("Tool")
-		if not tool then
-			notify("Erro", "Segure um item para duplicar!")
-			return
-		end
-
-		local newTool = tool:Clone()
-
-		-- Assumindo que o ID está em um atributo ou propriedade chamada "ItemID" (ajuste conforme seu jogo)
-		local id = newTool:GetAttribute("ItemID") or tonumber(newTool.Name:match("%d+")) or 0
-		if id == 0 then
-			notify("Erro", "Não foi possível identificar ID do item.")
-			return
-		end
-
-		local newId = id + 1
-		newTool:SetAttribute("ItemID", newId)
-
-		-- Renomear item para refletir novo ID, se quiser
-		newTool.Name = "Item_" .. newId
-
-		newTool.Parent = plr.Backpack
-		notify("Sucesso", "Item duplicado com ID " .. newId)
-	end
-
-	dupBtn.MouseButton1Click:Connect(function()
-		soundClick:Play()
-		duplicateItem()
-	end)
-end
+-- Conteúdo Fun (voar, esp, duplicar)
+local f = panels["Fun"]
 
 -- Voo
-do
-	local flying = false
-	local speed = 50
-	local bodyVelocity
+local flyBtn = Instance.new("TextButton", f)
+flyBtn.Size = UDim2.new(1, -20, 0, 50)
+flyBtn.Position = UDim2.new(0, 10, 0, 10)
+flyBtn.Text = "Voo (Desativado)"
+flyBtn.TextColor3 = Color3.new(1, 1, 1)
+flyBtn.Font = Enum.Font.SourceSansBold
+flyBtn.TextScaled = true
+flyBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+flyBtn.BorderSizePixel = 1
+flyBtn.BorderColor3 = Color3.new(1, 1, 1)
+flyBtn._originalText = flyBtn.Text
 
-	UserInputService.InputBegan:Connect(function(input, gameProcessed)
-		if gameProcessed then return end
-		if input.KeyCode == Enum.KeyCode.LeftControl then
-			flying = not flying
-			soundClick:Play()
-			notify("Voo", flying and "Voo ativado" or "Voo desativado")
+local flying = false
+local speed = 50
+local bodyVelocity
 
-			local char = plr.Character
-			local hrp = char and char:FindFirstChild("HumanoidRootPart")
-
-			if flying and hrp then
-				bodyVelocity = Instance.new("BodyVelocity")
-				bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-				bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-				bodyVelocity.Parent = hrp
-			elseif bodyVelocity then
+flyBtn.MouseButton1Click:Connect(function()
+	flying = not flying
+	showLoading(flyBtn)
+	if flying then
+		flyBtn.Text = "Voo (Ativado)"
+		bodyVelocity = Instance.new("BodyVelocity")
+		bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+		bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+		bodyVelocity.Parent = plr.Character.HumanoidRootPart
+		
+		local connection
+		connection = runService.Heartbeat:Connect(function()
+			if not flying then
+				connection:Disconnect()
 				bodyVelocity:Destroy()
-				bodyVelocity = nil
+				return
+			end
+			local direction = Vector3.new(0, 0, 0)
+			if uis:IsKeyDown(Enum.KeyCode.W) then direction = direction + workspace.CurrentCamera.CFrame.LookVector end
+			if uis:IsKeyDown(Enum.KeyCode.S) then direction = direction - workspace.CurrentCamera.CFrame.LookVector end
+			if uis:IsKeyDown(Enum.KeyCode.A) then direction = direction - workspace.CurrentCamera.CFrame.RightVector end
+			if uis:IsKeyDown(Enum.KeyCode.D) then direction = direction + workspace.CurrentCamera.CFrame.RightVector end
+			if uis:IsKeyDown(Enum.KeyCode.Space) then direction = direction + Vector3.new(0, 1, 0) end
+			if uis:IsKeyDown(Enum.KeyCode.LeftControl) then direction = direction - Vector3.new(0, 1, 0) end
+			
+			bodyVelocity.Velocity = direction.Unit * speed
+		end)
+	else
+		flyBtn.Text = "Voo (Desativado)"
+		if bodyVelocity then bodyVelocity:Destroy() end
+	end
+end)
+
+-- ESP simples (exibir nome dos jogadores)
+local espBtn = Instance.new("TextButton", f)
+espBtn.Size = UDim2.new(1, -20, 0, 50)
+espBtn.Position = UDim2.new(0, 10, 0, 70)
+espBtn.Text = "ESP (Desativado)"
+espBtn.TextColor3 = Color3.new(1, 1, 1)
+espBtn.Font = Enum.Font.SourceSansBold
+espBtn.TextScaled = true
+espBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+espBtn.BorderSizePixel = 1
+espBtn.BorderColor3 = Color3.new(1, 1, 1)
+espBtn._originalText = espBtn.Text
+
+local espActive = false
+local espLabels = {}
+
+espBtn.MouseButton1Click:Connect(function()
+	espActive = not espActive
+	showLoading(espBtn)
+	if espActive then
+		espBtn.Text = "ESP (Ativado)"
+		for _, pl in pairs(game.Players:GetPlayers()) do
+			if pl ~= plr and pl.Character and pl.Character:FindFirstChild("HumanoidRootPart") then
+				local billboard = Instance.new("BillboardGui", pl.Character.HumanoidRootPart)
+				billboard.Name = "Tr1X_ESP"
+				billboard.Adornee = pl.Character.HumanoidRootPart
+				billboard.Size = UDim2.new(0, 100, 0, 40)
+				billboard.AlwaysOnTop = true
+				
+				local label = Instance.new("TextLabel", billboard)
+				label.BackgroundTransparency = 1
+				label.Size = UDim2.new(1, 0, 1, 0)
+				label.TextColor3 = Color3.new(1, 1, 1)
+				label.TextStrokeColor3 = Color3.new(0, 0, 0)
+				label.TextStrokeTransparency = 0
+				label.Font = Enum.Font.SourceSansBold
+				label.TextScaled = true
+				label.Text = pl.Name
+				
+				espLabels[pl] = billboard
 			end
 		end
-	end)
-
-	RunService.RenderStepped:Connect(function()
-		if flying and bodyVelocity then
-			local char = plr.Character
-			local hrp = char and char:FindFirstChild("HumanoidRootPart")
-			if hrp then
-				local moveDir = Vector3.new(0, 0, 0)
-				if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + workspace.CurrentCamera.CFrame.LookVector end
-				if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - workspace.CurrentCamera.CFrame.LookVector end
-				if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - workspace.CurrentCamera.CFrame.RightVector end
-				if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + workspace.CurrentCamera.CFrame.RightVector end
-				if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDir = moveDir + Vector3.new(0, 1, 0) end
-				if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then moveDir = moveDir - Vector3.new(0, 1, 0) end
-
-				moveDir = Vector3.new(moveDir.X, moveDir.Y, moveDir.Z).Unit
-				if moveDir ~= moveDir then moveDir = Vector3.new(0,0,0) end -- evitar NaN
-
-				bodyVelocity.Velocity = moveDir * speed
+	else
+		espBtn.Text = "ESP (Desativado)"
+		for pl, gui in pairs(espLabels) do
+			if gui and gui.Parent then
+				gui:Destroy()
 			end
 		end
-	end)
-end
+		espLabels = {}
+	end
+end)
 
--- Mostrar aba Home por padrão
+-- Duplicar item na mão (simulado)
+local dupBtn = Instance.new("TextButton", f)
+dupBtn.Size = UDim2.new(1, -20, 0, 50)
+dupBtn.Position = UDim2.new(0, 10, 0, 130)
+dupBtn.Text = "Duplicar Item (Simulado)"
+dupBtn.TextColor3 = Color3.new(1, 1, 1)
+dupBtn.Font = Enum.Font.SourceSansBold
+dupBtn.TextScaled = true
+dupBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+dupBtn.BorderSizePixel = 1
+dupBtn.BorderColor3 = Color3.new(1, 1, 1)
+dupBtn._originalText = dupBtn.Text
+
+dupBtn.MouseButton1Click:Connect(function()
+	showLoading(dupBtn)
+	-- Simulação: pegar item da mão e duplicar com ID + 1
+	-- Como não há API concreta, vou simular um print:
+	local item = plr.Character and plr.Character:FindFirstChildWhichIsA("Tool")
+	if item then
+		local newID = (item:GetAttribute("ID") or 0) + 1
+		-- Simular duplicar:
+		local clone = item:Clone()
+		clone:SetAttribute("ID", newID)
+		clone.Parent = plr.Backpack
+		game.StarterGui:SetCore("SendNotification", {
+			Title = "Duplicação",
+			Text = "Item duplicado com ID: "..newID,
+			Duration = 3
+		})
+	else
+		game.StarterGui:SetCore("SendNotification", {
+			Title = "Erro",
+			Text = "Você não está segurando nenhum item.",
+			Duration = 3
+		})
+	end
+end)
+
+-- Botão minimizar/restaurar
+local minimized = false
+miniBtn.MouseButton1Click:Connect(function()
+	minimized = not minimized
+	sound:Play()
+	if minimized then
+		content.Visible = false
+		tabs.Visible = false
+		-- reduzir frame tamanho só para a barra de título
+		frame.Size = UDim2.new(0, 400, 0, 40)
+		miniBtn.Text = "+"
+	else
+		content.Visible = true
+		tabs.Visible = true
+		frame.Size = UDim2.new(0, 400, 0, 300)
+		miniBtn.Text = "-"
+	end
+end)
+
+-- Tornar frame arrastável pela barra de título
+local dragging = false
+local dragInput
+local dragStart
+local startPos
+
+title.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		dragStart = input.Position
+		startPos = frame.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+title.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement then
+		dragInput = input
+	end
+end)
+
+uis.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then
+		local delta = input.Position - dragStart
+		frame.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
+	end
+end)
+
+-- Mostrar aba inicial
 panels["Home"].Visible = true
-
 ]])()
